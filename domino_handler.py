@@ -4,13 +4,14 @@ import random
 class DominoSet:
     def __init__(self, s=5):
         self.num_pips = s
-        self.domino_set = []
-        self.build_set()
+        self.domino_set = [(n, face) for n in range(self.num_pips + 1) for face in range(n + 1)]
+        # self.build_set()
 
     def build_set(self):
         for n in range(self.num_pips + 1):
             for face in range(n + 1):
                 self.domino_set.append((n, face))
+
 
     def deal_hand(self, tiles=7):
         hand = []
