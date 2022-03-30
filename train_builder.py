@@ -104,7 +104,7 @@ class Tree:
 
 class Node(Tree):
     def __init__(self, name, hand, open_end):
-        super().__init__(self, name, hand, open_end)
+        super().__init__(name, hand, open_end)
         self.pull_tile(self.name)
 
     def pull_tile(self, tile):
