@@ -24,7 +24,7 @@ class DominoSet:
 
 class MexicanTrain(DominoSet):
     def __init__(self):
-        super().__init__(self, 12)
+        super().__init__(12)
 
     def pull_station(self, station):
         return self.domino_set.pop(self.domino_set.index(station))
