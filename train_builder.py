@@ -1,119 +1,213 @@
+from decorators import timer
+
 # mexican train train builder
-# get station and hand then build longest possible train
 
-# naming: tile is a domino is a tile
+"""
+
+given station and hand, build all possible trains
+
+ 
+
+naming note: tile is a domino is a tile
+
+"""
 
 
-def build_tree(station, hand):
-    # create tree with station as root, then build out all possible trains
-    tree = Tree(station, hand, station[0])
+def build_tree(station: tuple, hand: list):
+    """ create tree with station as root, then build out all possible trains from hand.  station is a tuple
+
+        representing a tile. hand is a list of tuples representing a hand of
+
+        dominoes, e.g. [(0,0), (0,1), ..., (2,12)]."""
+
+    tree = Tree(station, hand)
 
     for i in range(len(hand)):
 
         for leaf in tree.get_leaf_nodes():
-            for domino in leaf.remaining_tiles:
-                if domino[0] == leaf.open_end or domino[1] == leaf.open_end:
-                    open_end = domino[0] if domino[1] == leaf.open_end else domino[1]
-                    leaf.add_child(Node(domino, leaf.remaining_tiles[:], open_end))
+
+            for tile in leaf.remaining_tiles:
+
+                if leaf.open_end in tile:
+
+                    # create tile Node with Node.face_value in proper orientation relative to parent tile
+
+                    tile = (tile[1], tile[0]) if tile[1] == leaf.open_end else (
+                        tile[0], tile[1])
+
+                    leaf.add_child(Node(tile, leaf.remaining_tiles[:]))
 
     return tree
 
 
-def get_all_paths(node):
-    # returns a list of all paths (e.g. [Tree, Node, Node, ...]) in data tree from node
+def get_all_paths(node) -> list:
+    """returns a list of all paths (e.g. [Tree, Node, Node, ...]) in data tree from node"""
+
     if len(node.children) == 0:
+
         return [[node]]
+
     return [
+
         [node] + path for child in node.children for path in get_all_paths(child)
+
     ]
 
 
-def view_all_paths(_train):
-    all_paths = get_all_paths(_train)
+def get_all_paths_face_value(train, *, print_=False):
 
-    for list_nodes in all_paths:
-        print(*[node.name for node in list_nodes])
+    all_paths = get_all_paths(train)
+
+    if print_:
+
+        for list_nodes in all_paths:
+
+            print(*[node.face_value for node in list_nodes])
+
+    return [[node.face_value for node in list_nodes] for list_nodes in all_paths]
 
 
-def get_longest_train(_train):
-    all_paths = get_all_paths(_train)
+def get_longest_train(train, *, print_=False) -> int:
 
-    list_index_len = [(node_list[0], len(node_list[1]) - 1) for node_list in enumerate(all_paths)]
+    all_paths_face_value = get_all_paths_face_value(train)
 
-    longest = max(list_index_len, key=lambda x: x[1])
+    list_index_len = [(index, length - 1) for (index, length)
+                      in enumerate(map(len, all_paths_face_value))]
+
+    _, longest_len = max(list_index_len, key=lambda x: x[1])
 
     # list of indexes for the longest trains
-    longest_trains = [train[0] for train in list_index_len if train[1] == longest[1]]
 
-    print(f'There are {len(longest_trains)} trains {longest[1]} tiles long:')
-    for train in longest_trains:
-        print(*[tile.name for tile in all_paths[train]])
+    indexes_of_longest_trains = [
+
+        train_index for (train_index, train_length) in list_index_len if train_length == longest_len
+
+    ]
+
+    if print_:
+
+        print(
+            f'There are {len(indexes_of_longest_trains)} trains {longest_len} tiles long:')
+
+        for train_index in indexes_of_longest_trains:
+
+            print(*all_paths_face_value[train_index])
+
+    return longest_len
 
 
-def get_highest_value_train(_train):
-    all_paths = get_all_paths(_train)
+def get_highest_value_train(train, *, print_=False) -> int:
+    """get trains with highest total pip value.  Returns highest pip count"""
 
-    list_index_sum = [(node_list[0], sum([sum(node.name) for node in node_list[1][1:]]))
-                      for node_list in enumerate(all_paths)]
+    all_paths_face_value = get_all_paths_face_value(train)
 
-    largest = max(list_index_sum, key=lambda x: x[1])
+    list_index_sum = [
+
+        (index, sum([a + b for (a, b) in path])) for (index, path) in enumerate(all_paths_face_value)
+
+    ]
+
+    _, largest_pip_count = max(list_index_sum, key=lambda x: x[1])
 
     # list of indexes for the largest trains by pip count
-    largest_trains = [train[0] for train in list_index_sum if train[1] == largest[1]]
 
-    print(f'There are {len(largest_trains)} trains with {largest[1]} pips:')
-    for train in largest_trains:
-        print(*[tile.name for tile in all_paths[train]])
+    largest_trains = [index for (
+        index, pip_count) in list_index_sum if pip_count == largest_pip_count]
+
+    if print_:
+
+        print(
+            f'There are {len(largest_trains)} trains with {largest_pip_count} pips:')
+
+        for train_index in largest_trains:
+
+            print(*all_paths_face_value[train_index])
+
+    return largest_pip_count
 
 
-def get_ending_double(_train):
-    all_paths = get_all_paths(_train)
+def get_ending_double(train, *, print_=False) -> int:
+    """get all trains ending in a double.  Returns the number of possible trains ending in double"""
 
-    ending_double = [path for path in all_paths if path[-1].name[0] == path[-1].name[1]]
+    all_paths_face_value = get_all_paths_face_value(train)
 
-    print(f'There are {len(ending_double)} trains ending in a double:')
-    for train in ending_double:
-        print(*[tile.name for tile in train])
+    trains_ending_in_double = [
+        path for path in all_paths_face_value if path[-1][0] == path[-1][1]]
+
+    if print_:
+
+        print(
+            f'There are {len(trains_ending_in_double)} trains ending in a double:')
+
+        for train_path in trains_ending_in_double:
+
+            print(*train_path)
+
+    return len(trains_ending_in_double)
 
 
 class Tree:
-    def __init__(self, name, hand, open_end):
-        self.name = name
+
+    def __init__(self, face_value: tuple, hand: list):
+
+        self.face_value = face_value
+
         self.remaining_tiles = hand
-        self.open_end = open_end
+
+        self.open_end = face_value[1]
+
         self.children = []
+
         self.nodes = []
 
     def add_child(self, domino_tree):
+
         assert isinstance(domino_tree, Tree)
+
         self.children.append(domino_tree)
 
     def get_leaf_nodes(self):
-        leafs = []
+
+        leaves = []
 
         def _get_leaf_nodes(node):
+
             if node is not None:
+
                 if len(node.children) == 0:
-                    leafs.append(node)
+
+                    leaves.append(node)
+
                 for n in node.children:
+
                     _get_leaf_nodes(n)
 
         _get_leaf_nodes(self)
-        return leafs
+
+        return leaves
 
 
 class Node(Tree):
-    def __init__(self, name, hand, open_end):
-        super().__init__(name, hand, open_end)
-        self.pull_tile(self.name)
 
-    def pull_tile(self, tile):
-        self.remaining_tiles.remove(tile)
+    def __init__(self, face_value, hand):
 
-    def get_children(self, tree):
-        for child in self.children:
-            if child.children:
-                child.get_children(tree)
-                tree.append(child.name)
-            else:
-                tree.append(child.name)
+        super().__init__(face_value, hand)
+
+        self.pull_tile(self.face_value)
+
+    def pull_tile(self, tile_to_pull):
+
+        self.remaining_tiles.remove(
+
+            tile_to_pull if tile_to_pull in self.remaining_tiles else (
+                tile_to_pull[1], tile_to_pull[0])
+
+        )
+
+        # if tile_to_pull in self.remaining_tiles:
+
+        #     self.remaining_tiles.remove(tile_to_pull)
+
+        # else:
+
+        #     self.remaining_tiles.remove((tile_to_pull[1], tile_to_pull[0]))
