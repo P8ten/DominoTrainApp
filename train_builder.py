@@ -3,13 +3,9 @@ from decorators import timer
 # mexican train train builder
 
 """
-
 given station and hand, build all possible trains
 
- 
-
 naming note: tile is a domino is a tile
-
 """
 
 
@@ -71,8 +67,9 @@ def get_longest_train(train, *, print_=False) -> int:
 
     all_paths_face_value = get_all_paths_face_value(train)
 
-    list_index_len = [(index, length - 1) for (index, length)
-                      in enumerate(map(len, all_paths_face_value))]
+    list_index_len = [
+        (index, length - 1) for (index, length) in enumerate(map(len, all_paths_face_value))
+        ]
 
     _, longest_len = max(list_index_len, key=lambda x: x[1])
 
@@ -111,8 +108,7 @@ def get_highest_value_train(train, *, print_=False) -> int:
 
     # list of indexes for the largest trains by pip count
 
-    largest_trains = [index for (
-        index, pip_count) in list_index_sum if pip_count == largest_pip_count]
+    largest_trains = [index for (index, pip_count) in list_index_sum if pip_count == largest_pip_count]
 
     if print_:
 
