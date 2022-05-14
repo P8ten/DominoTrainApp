@@ -26,17 +26,13 @@ class DominoSet:
     def deal_hand(self, tiles=7) -> list:
         """returns list of tuples representing a hand of dominoes"""
 
-        hand = []
-
         if len(self._domino_set) < tiles:
 
             raise IndexError(f'There are only {len(self._domino_set)} available tiles in self._domino_set.'
 
                              f'Called for {tiles} tiles.')
 
-        for _ in range(tiles):
-
-            hand.append(self._domino_set.pop())
+        hand, self._domino_set = self._domino_set[:tiles], self._domino_set[tiles:]
 
         return hand
 
