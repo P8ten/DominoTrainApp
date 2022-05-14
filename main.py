@@ -4,7 +4,8 @@ import train_builder
 
 def train(starting_tile):
 
-    # Up to 4 players take 15 dominoes each, 5 or 6 take 12 each, 7 or 8 take 10 each
+    # Up to 4 players take 15 dominoes each,
+    # 5 or 6 take 12 each, 7 or 8 take 10 each
 
     ds = domino_handler.MexicanTrain(set_size=12)
 

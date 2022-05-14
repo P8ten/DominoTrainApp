@@ -1,24 +1,69 @@
-from decorators import timer
+class Tree:
 
-# mexican train train builder
+    def __init__(self, face_value: tuple, hand: list):
 
-"""
-given station and hand, build all possible trains
+        self.face_value = face_value
 
-naming note: tile is a domino is a tile
-"""
+        self.remaining_tiles = hand
+
+        self.open_end = face_value[1]
+
+        self.children = []
 
 
-def build_tree(station: tuple, hand: list):
-    """ create tree with station as root, then build out all possible trains from hand.  station is a tuple
+    def add_child(self, domino_tree):
 
-        representing a tile. hand is a list of tuples representing a hand of
+        self.children.append(domino_tree)
 
-        dominoes, e.g. [(0,0), (0,1), ..., (2,12)]."""
+
+    def get_leaf_nodes(self):
+
+        leaves = []
+
+        def _get_leaf_nodes(node):
+
+            if node is not None:
+
+                if len(node.children) == 0:
+
+                    leaves.append(node)
+
+                for child in node.children:
+
+                    _get_leaf_nodes(child)
+
+        _get_leaf_nodes(self)
+
+        return leaves
+
+
+class Node(Tree):
+
+    def __init__(self, face_value, hand):
+
+        super().__init__(face_value, hand)
+
+        self.pull_tile(self.face_value)
+
+    def pull_tile(self, tile_to_pull):
+
+        self.remaining_tiles.remove(
+            tile_to_pull if tile_to_pull in self.remaining_tiles else (tile_to_pull[::-1])
+        )
+
+
+def build_tree(station: tuple, hand: list) -> type(Tree):
+    """
+
+    create tree with station as root, then build out all possible trains from hand.
+    station is a tuple representing a tile.
+    hand is a list of tuples representing a hand of dominoes, e.g. [(0,0), (0,1), ..., (2,12)].
+
+    """
 
     tree = Tree(station, hand)
 
-    for i in range(len(hand)):
+    for _ in range(len(hand)):
 
         for leaf in tree.get_leaf_nodes():
 
@@ -26,7 +71,8 @@ def build_tree(station: tuple, hand: list):
 
                 if leaf.open_end in tile:
 
-                    # create tile Node with Node.face_value in proper orientation relative to parent tile
+                    # create tile Node with Node.face_value in proper
+                    # orientation relative to parent tile
 
                     tile = (tile[1], tile[0]) if tile[1] == leaf.open_end else (
                         tile[0], tile[1])
@@ -37,7 +83,15 @@ def build_tree(station: tuple, hand: list):
 
 
 def get_all_paths(node) -> list:
-    """returns a list of all paths (e.g. [Tree, Node, Node, ...]) in data tree from node"""
+    """returns a list of all paths (e.g. [Tree, Node, Node, ...]) in data tree from node
+        should be used with tree as input
+
+    Args:
+        node (train_builder.Node): a node of the tree representing a brance of the train
+
+    Returns:
+        list: returns a list of lists which contain the path of all possible trains from node
+    """
 
     if len(node.children) == 0:
 
@@ -50,7 +104,17 @@ def get_all_paths(node) -> list:
     ]
 
 
-def get_all_paths_face_value(train, *, print_=False):
+def get_all_paths_face_value(train, *, print_=False) -> list:
+    """used to get a list of of all trains from station by face falue
+
+    Args:
+        train (train_builder.Tree): Tree class representing all possible trains from station
+        print_ (bool, optional): _description_. Defaults to False.
+
+    Returns:
+        list: returns a list of lists which contains tuples representing the face value of all tiles
+        in a train for all trains
+    """
 
     all_paths = get_all_paths(train)
 
@@ -67,30 +131,18 @@ def get_longest_train(train, *, print_=False) -> int:
 
     all_paths_face_value = get_all_paths_face_value(train)
 
-    list_index_len = [
-        (index, length - 1) for (index, length) in enumerate(map(len, all_paths_face_value))
-        ]
-
-    _, longest_len = max(list_index_len, key=lambda x: x[1])
-
-    # list of indexes for the longest trains
-
-    indexes_of_longest_trains = [
-
-        train_index for (train_index, train_length) in list_index_len if train_length == longest_len
-
-    ]
+    max_len = max(map(len, all_paths_face_value))
 
     if print_:
 
-        print(
-            f'There are {len(indexes_of_longest_trains)} trains {longest_len} tiles long:')
+        longest_trains = [train for train in all_paths_face_value if len(train) == max_len]
 
-        for train_index in indexes_of_longest_trains:
+        print(f'There are {len(longest_trains)} trains using {max_len - 1} tiles:')
+     
+        for train_path in longest_trains:
+            print(*train_path)
 
-            print(*all_paths_face_value[train_index])
-
-    return longest_len
+    return max_len
 
 
 def get_highest_value_train(train, *, print_=False) -> int:
@@ -141,69 +193,3 @@ def get_ending_double(train, *, print_=False) -> int:
 
     return len(trains_ending_in_double)
 
-
-class Tree:
-
-    def __init__(self, face_value: tuple, hand: list):
-
-        self.face_value = face_value
-
-        self.remaining_tiles = hand
-
-        self.open_end = face_value[1]
-
-        self.children = []
-
-        self.nodes = []
-
-    def add_child(self, domino_tree):
-
-        assert isinstance(domino_tree, Tree)
-
-        self.children.append(domino_tree)
-
-    def get_leaf_nodes(self):
-
-        leaves = []
-
-        def _get_leaf_nodes(node):
-
-            if node is not None:
-
-                if len(node.children) == 0:
-
-                    leaves.append(node)
-
-                for n in node.children:
-
-                    _get_leaf_nodes(n)
-
-        _get_leaf_nodes(self)
-
-        return leaves
-
-
-class Node(Tree):
-
-    def __init__(self, face_value, hand):
-
-        super().__init__(face_value, hand)
-
-        self.pull_tile(self.face_value)
-
-    def pull_tile(self, tile_to_pull):
-
-        self.remaining_tiles.remove(
-
-            tile_to_pull if tile_to_pull in self.remaining_tiles else (
-                tile_to_pull[1], tile_to_pull[0])
-
-        )
-
-        # if tile_to_pull in self.remaining_tiles:
-
-        #     self.remaining_tiles.remove(tile_to_pull)
-
-        # else:
-
-        #     self.remaining_tiles.remove((tile_to_pull[1], tile_to_pull[0]))
