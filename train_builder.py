@@ -3,18 +3,13 @@ class Tree:
     def __init__(self, face_value: tuple, hand: list):
 
         self.face_value = face_value
-
         self.remaining_tiles = hand
-
         self.open_end = face_value[1]
-
         self.children = []
-
 
     def add_child(self, domino_tree):
 
         self.children.append(domino_tree)
-
 
     def get_leaf_nodes(self):
 
@@ -25,31 +20,14 @@ class Tree:
             if node is not None:
 
                 if len(node.children) == 0:
-
                     leaves.append(node)
 
                 for child in node.children:
-
                     _get_leaf_nodes(child)
 
         _get_leaf_nodes(self)
 
         return leaves
-
-
-class Node(Tree):
-
-    def __init__(self, face_value, hand):
-
-        super().__init__(face_value, hand)
-
-        self.pull_tile(self.face_value)
-
-    def pull_tile(self, tile_to_pull):
-
-        self.remaining_tiles.remove(
-            tile_to_pull if tile_to_pull in self.remaining_tiles else (tile_to_pull[::-1])
-        )
 
 
 def build_tree(station: tuple, hand: list) -> type(Tree):
@@ -74,10 +52,15 @@ def build_tree(station: tuple, hand: list) -> type(Tree):
                     # create tile Node with Node.face_value in proper
                     # orientation relative to parent tile
 
-                    tile = (tile[1], tile[0]) if tile[1] == leaf.open_end else (
-                        tile[0], tile[1])
+                    remaining_tiles = leaf.remaining_tiles[:]
+                    remaining_tiles.remove(tile)
 
-                    leaf.add_child(Node(tile, leaf.remaining_tiles[:]))
+                    leaf.add_child(
+                        Tree(
+                            tile[::-1] if tile[1] == leaf.open_end else tile,
+                            remaining_tiles
+                        )
+                    )
 
     return tree
 
@@ -135,10 +118,12 @@ def get_longest_train(train, *, print_=False) -> int:
 
     if print_:
 
-        longest_trains = [train for train in all_paths_face_value if len(train) == max_len]
+        longest_trains = [
+            train for train in all_paths_face_value if len(train) == max_len]
 
-        print(f'There are {len(longest_trains)} trains using {max_len - 1} tiles:')
-     
+        print(
+            f'There are {len(longest_trains)} trains using {max_len - 1} tiles:')
+
         for train_path in longest_trains:
             print(*train_path)
 
@@ -148,30 +133,24 @@ def get_longest_train(train, *, print_=False) -> int:
 def get_highest_value_train(train, *, print_=False) -> int:
     """get trains with highest total pip value.  Returns highest pip count"""
 
+    def _get_train_sum(path):
+        return sum([a + b for (a, b) in path])
+
     all_paths_face_value = get_all_paths_face_value(train)
 
-    list_index_sum = [
-
-        (index, sum([a + b for (a, b) in path])) for (index, path) in enumerate(all_paths_face_value)
-
-    ]
-
-    _, largest_pip_count = max(list_index_sum, key=lambda x: x[1])
-
-    # list of indexes for the largest trains by pip count
-
-    largest_trains = [index for (index, pip_count) in list_index_sum if pip_count == largest_pip_count]
+    max_sum = max([_get_train_sum(path) for path in all_paths_face_value])
 
     if print_:
 
-        print(
-            f'There are {len(largest_trains)} trains with {largest_pip_count} pips:')
+        largest_trains = [
+            train for train in all_paths_face_value if _get_train_sum(train) == max_sum]
 
-        for train_index in largest_trains:
+        print(f'There are {len(largest_trains)} trains with {max_sum} pips:')
 
-            print(*all_paths_face_value[train_index])
+        for train_path in largest_trains:
+            print(*train_path)
 
-    return largest_pip_count
+    return max_sum
 
 
 def get_ending_double(train, *, print_=False) -> int:
@@ -192,4 +171,3 @@ def get_ending_double(train, *, print_=False) -> int:
             print(*train_path)
 
     return len(trains_ending_in_double)
-
