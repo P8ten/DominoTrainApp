@@ -1,0 +1,8 @@
+{% extends 'buildTrain/base.html' %}
+
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'buildTrain/css/base.css' %}">
+<h1>Home with content!</h1>
+<a href={% url 'buildTrain:station' %}><img src={% static 'buildTrain/images/train_home.png' %} alt="Mexican Train" width="400" height="500"></a>
+{% endblock content %}

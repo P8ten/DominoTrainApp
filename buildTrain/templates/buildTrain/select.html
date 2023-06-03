@@ -1,0 +1,7 @@
+{% extends 'buildTrain/base.html' %}
+{% block content %}
+<h1>Select hand!</h1>
+{% for starter in starters %}
+<a href={% url 'buildTrain:hand' %}><ul>{{starter}}</ul></a>
+{% endfor %}
+{% endblock content %}

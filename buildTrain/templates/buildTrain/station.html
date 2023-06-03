@@ -1,0 +1,23 @@
+{% extends 'buildTrain/base.html' %}
+{% load static %}
+
+
+{% block content%}
+{% comment %} <link rel="stylesheet" href="{% static 'buildTrain/css/select.css' %}"> {% endcomment %}
+<link rel="stylesheet" href="{% static 'buildTrain/css/domino_images.css' %}">
+<link rel="stylesheet" href="{% static 'buildTrain/css/station.css' %}">
+<h1>Select station!</h1>
+
+<form action={% url 'buildTrain:station' %} method="post">
+  {% csrf_token %}
+
+  <div class="form-check form-check-inline station-selector">
+    {% for field in form %}
+    {{ field }}
+    {% endfor %}
+  </div>
+  
+  <input type="submit" value="Submit">
+</form>
+
+{% endblock content %}

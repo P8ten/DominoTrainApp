@@ -1,0 +1,46 @@
+.station-selector input {
+    margin: 0;
+    padding: 0;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+  
+  .station-selector input:active+.domino {
+    opacity: .9;
+  }
+  
+  .station-selector input:checked+.domino {
+    -webkit-filter: none;
+    -moz-filter: none;
+    filter: none;
+  }
+  
+  .domino {
+    cursor: pointer;
+    background-size: contain;
+    background-repeat: no-repeat;
+    display: inline-block;
+    width: 100px;
+    height: 70px;
+    -webkit-transition: all 100ms ease-in;
+    -moz-transition: all 100ms ease-in;
+    transition: all 100ms ease-in;
+    -webkit-filter: brightness(1.8) grayscale(1) opacity(.7);
+    -moz-filter: brightness(1.8) grayscale(1) opacity(.7);
+    filter: brightness(1.8) grayscale(1) opacity(.7);
+  }
+  
+  .domino:hover {
+    -webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);
+    -moz-filter: brightness(1.2) grayscale(.5) opacity(.9);
+    filter: brightness(1.2) grayscale(.5) opacity(.9);
+  }
+  
+  /* <p>Now, with CSS3: </p>
+  <div class="station-selector">
+      <input checked="checked" id="visa" type="radio" name="credit-card" value="visa" />
+      <label class="drinkcard-cc visa" for="visa"></label>
+      <input id="mastercard" type="radio" name="credit-card" value="mastercard" />
+      <label class="drinkcard-cc mastercard"for="mastercard"></label>
+  </div> */
