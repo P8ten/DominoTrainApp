@@ -37,7 +37,7 @@ class TrainBranch:
         return [node for child in self.get_children() for node in child.get_branch_end_nodes()]
 
 
-def build_tree(station: tuple, hand: list, data_class = TrainBranch) -> 'TrainBranch':
+def build_tree(station: tuple, hand: list, data_class = TrainBranch) -> TrainBranch:
     """
 
     create tree with station as root, then build out all possible trains from hand.
@@ -117,7 +117,7 @@ def get_all_paths_face_value(train: TrainBranch, *, print_=False) -> list[list[t
     return [[node.get_head_tile() for node in list_nodes] for list_nodes in all_paths]
 
 
-def get_longest_train(train, *, print_=False) -> int:
+def get_longest_trains(train, *, print_=False) -> int:
 
     all_paths_face_value = get_all_paths_face_value(train)
 
@@ -137,7 +137,7 @@ def get_longest_train(train, *, print_=False) -> int:
     return max_len
 
 
-def get_highest_value_train(train, *, print_=False) -> int:
+def get_highest_value_trains(train, *, print_=False) -> int:
     """get trains with highest total pip value.  Returns highest pip count"""
 
     def _get_train_sum(path):
@@ -160,7 +160,7 @@ def get_highest_value_train(train, *, print_=False) -> int:
     return max_sum
 
 
-def get_ending_double(train, *, print_=False) -> int:
+def get_ending_doubles(train, *, print_=False) -> int:
     """get all trains ending in a double.  Returns the number of possible trains ending in double"""
 
     all_paths_face_value = get_all_paths_face_value(train)
@@ -180,160 +180,27 @@ def get_ending_double(train, *, print_=False) -> int:
     return len(trains_ending_in_double)
 
 
-class Train:
+def get_longest_train(train) -> list[tuple[int,int]]:
 
-    def __init__(self, station: tuple[int, int], hand: list[tuple[int, int]], data_class) -> None:
-        self.train = self.__build_train(station=station, hand=hand, data_class=data_class)
+    all_paths_face_value = get_all_paths_face_value(train)
 
-    @staticmethod
-    def __build_train(station: tuple, hand: list, data_class = TrainBranch) -> 'TrainBranch':
-        """
-            create tree with station as root, then build out all possible trains from hand.
-            station is a tuple representing a tile.
-            hand is a list of tuples representing a hand of dominoes, e.g. [(0,0), (0,1), ..., (2,12)]. """
-        
-        train = data_class(station, hand)
+    max_len = max(map(len, all_paths_face_value))
 
-        for _ in range(len(train.get_remaining_tiles())):
+    return [train for train in all_paths_face_value if len(train) == max_len]
 
-            for leaf in train.get_branch_end_nodes():
+def get_ending_double(train) -> list[tuple[int,int]]:
+    """get all trains ending in a double."""
 
-                for tile in leaf.get_remaining_tiles():
+    all_paths_face_value = get_all_paths_face_value(train)
 
-                    if leaf.get_open_end() in tile:
+    return [path for path in all_paths_face_value if path[-1][0] == path[-1][1]]
 
-                        # create tile Node with Node.head_value in proper
-                        # orientation relative to parent tile
+def get_highest_value_train(train) -> list[tuple[int,int]]:
+    """get trains with highest total pip value"""
 
-                        remaining_tiles = leaf.get_remaining_tiles()[:]
-                        remaining_tiles.remove(tile)
+    all_paths_face_value = get_all_paths_face_value(train)
 
-                        leaf.set_child(
-                            data_class(
-                                head_tile=tile[::-1] if tile[1] == leaf.get_open_end() else tile,
-                                remaining_tiles=remaining_tiles,
-                            )
-                        )
+    max_sum = max([sum([a + b for (a, b) in path]) for path in all_paths_face_value])
 
-        return train
+    return [train for train in all_paths_face_value if sum([a + b for (a, b) in train]) == max_sum]
 
-    def get_branch_end_nodes(self) -> list[TrainBranch]:
-        if len(self.children) == 0:
-            return [self]
-        return super().get_branch_end_nodes()
-    
-
-    def get_all_paths(self) -> list:
-        """returns a list of all paths (e.g. [Tree, Node, Node, ...]) in data tree from node
-            should be used with tree as input
-
-        Args:
-            node (train_builder.Node): a node of the tree representing a brance of the train
-
-        Returns:
-            list: returns a list of lists which contain the path of all possible trains from node
-        """
-
-        if len(self.train.children) == 0:
-
-            return [[self]]
-
-        return [
-
-            [self] + path for child in self.train.children for path in child.get_branch_end_nodes()
-
-        ]
-
-
-    def get_all_paths_face_value(self, *, print_=False) -> list:
-        """used to get a list of of all trains from station by face falue
-
-        Args:
-            train (train_builder.Tree): Tree class representing all possible trains from station
-            print_ (bool, optional): _description_. Defaults to False.
-
-        Returns:
-            list: returns a list of lists which contains tuples representing the face value of all tiles
-            in a train for all trains
-        """
-
-        all_paths = self.get_all_paths()
-
-        if print_:
-
-            for list_nodes in all_paths:
-
-                print(*[node for node in list_nodes])
-
-        return [[node.get_head_tile() for node in list_nodes] for list_nodes in all_paths]
-
-
-    def get_longest_train(self, *, print_=False) -> int:
-
-        all_paths_face_value = self.get_all_paths_face_value()
-
-        max_len = max(map(len, all_paths_face_value))
-
-        if print_:
-
-            longest_trains = [
-                train for train in all_paths_face_value if len(train) == max_len]
-
-            print(
-                f'There are {len(longest_trains)} trains using {max_len - 1} tiles:')
-
-            for train_path in longest_trains:
-                print(*train_path)
-
-        return max_len
-
-
-    def get_highest_value_train(self, *, print_=False) -> int:
-        """get trains with highest total pip value.  Returns highest pip count"""
-
-        def _get_train_sum(path):
-            return sum([a + b for (a, b) in path])
-
-        all_paths_face_value = self.get_all_paths_face_value()
-
-        max_sum = max([_get_train_sum(path) for path in all_paths_face_value])
-
-        if print_:
-
-            largest_trains = [
-                train for train in all_paths_face_value if _get_train_sum(train) == max_sum]
-
-            print(f'There are {len(largest_trains)} trains with {max_sum} pips:')
-
-            for train_path in largest_trains:
-                print(*train_path)
-
-        return max_sum
-
-
-    def get_ending_double(self, *, print_=False) -> int:
-        """get all trains ending in a double.  Returns the number of possible trains ending in double"""
-
-        all_paths_face_value = self.get_all_paths_face_value()
-
-        trains_ending_in_double = [
-            path for path in all_paths_face_value if path[-1][0] == path[-1][1]]
-
-        if print_:
-
-            print(
-                f'There are {len(trains_ending_in_double)} trains ending in a double:')
-
-            for train_path in trains_ending_in_double:
-
-                print(*train_path)
-
-        return len(trains_ending_in_double)
-
-
-class TrainGetters():
-
-    def __init__(self, getter: 'getter_function'=None):
-        self.__getter = list()
-        if getter is not None:
-            self.__getter += getter

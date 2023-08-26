@@ -11,9 +11,7 @@ class DominoSet:
 
         self.shuffle_set()
 
-        # self.domino_ascii = [chr(i) for i in range(127025, 127124)]
-
-    def set_domino_set(self) -> None:
+    def set_domino_set(self) -> list[tuple[int, int]]:
         """builds list of tuples representing tiles in a domino set.  Set size determined by self.highest_pip (int) in
 
         class constructor.  Set is shuffled randomly."""
@@ -23,7 +21,7 @@ class DominoSet:
     def shuffle_set(self):
         shuffle(self._domino_set)
     
-    def get_set(self):
+    def get_set(self) -> list[tuple[int, int]]:
         return self._domino_set
 
     def __str__(self):
