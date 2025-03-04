@@ -1,69 +1,61 @@
 class Tree:
+    """
+    Represents a tree structure for building all possible domino trains.
+    """
 
-    def __init__(self, face_value: tuple, hand: list):
+    def __init__(self, face_value: tuple, remaining_tiles: list):
+        self.face_value = face_value  # Current tile (tuple)
+        self.remaining_tiles = set(remaining_tiles)  # Use set for O(1) lookups
+        self.open_end = face_value[1]  # The side of the tile open for connections
+        self.children = []  # Child nodes representing next possible moves
 
-        self.face_value = face_value
-        self.remaining_tiles = hand
-        self.open_end = face_value[1]
-        self.children = []
-
-    def add_child(self, domino_tree):
-
-        self.children.append(domino_tree)
+    def add_child(self, child_node):
+        """Adds a new child node to the tree."""
+        self.children.append(child_node)
 
     def get_leaf_nodes(self):
-
+        """Returns all leaf nodes in the tree (i.e., endpoints of valid trains)."""
         leaves = []
 
-        def _get_leaf_nodes(node):
+        def _traverse(node):
+            if not node.children:
+                leaves.append(node)
+            for child in node.children:
+                _traverse(child)
 
-            if node is not None:
-
-                if len(node.children) == 0:
-                    leaves.append(node)
-
-                for child in node.children:
-                    _get_leaf_nodes(child)
-
-        _get_leaf_nodes(self)
-
+        _traverse(self)
         return leaves
 
 
-def build_tree(station: tuple, hand: list) -> type(Tree):
+def build_tree(station: tuple, hand: list) -> Tree:
     """
+    Builds a tree of all possible domino train sequences from the given hand.
 
-    create tree with station as root, then build out all possible trains from hand.
-    station is a tuple representing a tile.
-    hand is a list of tuples representing a hand of dominoes, e.g. [(0,0), (0,1), ..., (2,12)].
+    Args:
+        station (tuple): The starting domino (root of the tree).
+        hand (list): List of domino tuples representing the player's hand.
 
+    Returns:
+        Tree: The root of the generated tree.
     """
-
     tree = Tree(station, hand)
+    stack = [(tree, set(hand))]  # Use a stack for iterative DFS
 
-    for _ in range(len(hand)):
+    while stack:
+        node, available_tiles = stack.pop()
 
-        for leaf in tree.get_leaf_nodes():
+        # Find playable tiles
+        playable_tiles = [tile for tile in available_tiles if node.open_end in tile]
 
-            for tile in leaf.remaining_tiles:
+        for tile in playable_tiles:
+            oriented_tile = tile[::-1] if tile[1] == node.open_end else tile
+            new_hand = available_tiles - {tile}  # Create new hand without the used tile
 
-                if leaf.open_end in tile:
-
-                    # create tile Node with Node.face_value in proper
-                    # orientation relative to parent tile
-
-                    remaining_tiles = leaf.remaining_tiles[:]
-                    remaining_tiles.remove(tile)
-
-                    leaf.add_child(
-                        Tree(
-                            tile[::-1] if tile[1] == leaf.open_end else tile,
-                            remaining_tiles
-                        )
-                    )
+            child_node = Tree(oriented_tile, new_hand)
+            node.add_child(child_node)
+            stack.append((child_node, new_hand))  # Continue expansion
 
     return tree
-
 
 def get_all_paths(node) -> list:
     """returns a list of all paths (e.g. [Tree, Node, Node, ...]) in data tree from node
