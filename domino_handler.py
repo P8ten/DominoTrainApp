@@ -1,4 +1,4 @@
-from random import shuffle
+import random
 
 
 class DominoSet:
@@ -7,21 +7,16 @@ class DominoSet:
 
         self._highest_pip = set_size
 
-        self._domino_set = []
-
-        self._build_set()
+        self._domino_set = set(_build_set())
 
         # self.domino_ascii = [chr(i) for i in range(127025, 127124)]
 
-    def _build_set(self) -> None:
+    def _build_set(self) -> list[tuple[int, int]]:
         """builds list of tuples representing tiles in a domino set.  Set size determined by self.highest_pip (int) in
 
         class constructor.  Set is shuffled randomly."""
 
-        self._domino_set = [(n, face) for n in range(
-            self._highest_pip + 1) for face in range(n + 1)]
-
-        shuffle(self._domino_set)
+        return [(n, face) for n in range(self._highest_pip + 1) for face in range(n + 1)]
 
     def deal_hand(self, tiles=7) -> list:
         """returns list of tuples representing a hand of dominoes"""
@@ -32,7 +27,9 @@ class DominoSet:
 
                              f'Called for {tiles} tiles.')
 
-        hand, self._domino_set = self._domino_set[:tiles], self._domino_set[tiles:]
+        hand = random.sample(list(self._domino_set), tiles)
+        
+        self._domino_set -= set(hand)
 
         return hand
 
